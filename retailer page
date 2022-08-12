@@ -288,7 +288,675 @@ echo "<td>" . $rowaCus["order_total"] . "</td>";
   </div>
  
  
- 
+ ----------------------------------------------------- retailer single ------------------------------------------------------------------------
+  reatiler-single-order-status.php
   
+  <section class="product-page"><div class="container">
+
+<?php
+$a = $_GET['link'];
+$b = $_GET['status'];
+$c = $_GET['singleorder'];
+$post_id = $a;
+$post_id = $post_id;
+$shop_id = $post_id;
+//echo $shop_id;
+// echo $shop_id; echo $c; echo $b;
+$queried_post = get_post($post_id);
+
+$userName = $queried_post->user_name;
+// echo $userName . "-". $b;
+?>
+<h2 class="sub-title"><?php  echo $b; ?> - <?php echo $queried_post->post_title; //echo the_title(); ?> </h2>
+
+<div class="orderSearchBLk">
+  
+<div class="classVistiShopBtn"><a href="<?php echo site_url(); ?>/shop/<?php echo $queried_post->post_name; ?>">Visit Shop Home</a></div>
+
+<div class="clear"></div></div>
+<div class="clear"></div>
+<?php
+
+if($b == "wc-processing") {
+	?>    
+<div id="processingSingle">  
+<table class="OrderTableSingle">
+
+<?php
+$sql = "SELECT wp_woocommerce_order_items.*,wp_woocommerce_order_itemmeta.* FROM wp_woocommerce_order_items LEFT JOIN wp_woocommerce_order_itemmeta ON wp_woocommerce_order_items.order_item_id = wp_woocommerce_order_itemmeta.order_item_id WHERE wp_woocommerce_order_itemmeta.meta_value = '{$shop_id}' and wp_woocommerce_order_items.order_id = '{$c}' ORDER BY wp_woocommerce_order_items.order_id DESC ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+
+
+$order_id = $row["order_id"];
+$orderItem_id = $row["order_item_id"];
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+
+$prod_id = $rowPId["meta_value"];
+  } }
+   
+$post_id = $prod_id;
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;
+
+ $queried_post_order = get_post($order_id);
+$orderStatus =  $queried_post_order->post_status;
+//echo "<br>".$orderStatus."<br>";
+ if($orderStatus == "wc-processing") {   
+ echo "<tr><th>Order Item Name</th><td>-</td><td><a href='".site_url()."/".$queried_post->post_name."'>" . $title . "</a></td></tr>"; 
+
+echo "<tr><th>Order Status  </th></td><td>-</td><td><button type='button' class='btn btn-primary' data-toggle='modal' data-target='#exampleModalCenter'>".$orderStatus."</button>  </td></tr>";
+
+
+$terms = get_the_terms( $post_id , 'product_cat' );
+foreach ( $terms as $term ) {
+echo "<tr><th>Product Category </th></td><td>-</td><td>" . $term->name. "</td></tr>";
+}//echo "<strong>Meta Key -</strong> " .  $row["meta_key"]. "<br>";
+//echo "<strong>Value  -</strong> " . $row["meta_value"]. ";
+$sqla = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('Color',  'Size')  ";
+$resulta = $conn->query($sqla);
+if ($resulta->num_rows > 0) {
+  // output data of each row
+  while($rowa = $resulta->fetch_assoc()) {
+echo "<tr><th>". $rowa["meta_key"] . " </th><td>-</td><td>" . $rowa["meta_value"] . "</td></tr>";
+  } }
+		
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+//echo "Product Id -  </strong>" . $rowPId["meta_value"] . "<br>";
+	  echo "<tr><th>Product Id  </th></td><td>-</td><td>" . $rowPId["meta_value"] . "</td></tr>";
+$prod_id = $rowPId["meta_value"];
+  } }
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;		
+	 //echo $order_id;
+$order = new WC_Order($order_id);
+$order_date = $order->order_date;
+//echo "<strong>Order Date -  </strong>" .$order_date;
+echo "<tr><th>Order Date   </th></td><td>-</td><td>" .date('d/M/Y', strtotime($order_date)). "</td></tr>";
+$dt = new DateTime($order_date);
+//$date = $dt->format('d-m-Y');
+$time = $dt->format('h:i:s A');
+echo "<tr><th>Order Time   </th></td><td>-</td><td>" .$time."</td></tr>";
+$sqlCus = "SELECT
+        p.ID as order_id,
+        p.post_date,
+        max( CASE WHEN pm.meta_key = '_billing_email' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_email,
+        max( CASE WHEN pm.meta_key = '_billing_phone' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_phone,
+
+        max( CASE WHEN pm.meta_key = '_billing_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_first_name,
+        max( CASE WHEN pm.meta_key = '_billing_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_last_name,
+        max( CASE WHEN pm.meta_key = '_billing_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_1,
+        max( CASE WHEN pm.meta_key = '_billing_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_2,
+        max( CASE WHEN pm.meta_key = '_billing_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_city,
+        max( CASE WHEN pm.meta_key = '_billing_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_state,
+        max( CASE WHEN pm.meta_key = '_billing_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_postcode,
+        max( CASE WHEN pm.meta_key = '_shipping_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_first_name,
+        max( CASE WHEN pm.meta_key = '_shipping_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_last_name,
+        max( CASE WHEN pm.meta_key = '_shipping_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_1,
+        max( CASE WHEN pm.meta_key = '_shipping_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_2,
+        max( CASE WHEN pm.meta_key = '_shipping_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_city,
+        max( CASE WHEN pm.meta_key = '_shipping_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_state,
+        max( CASE WHEN pm.meta_key = '_shipping_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_postcode,
+        max( CASE WHEN pm.meta_key = '_order_total' and p.ID = pm.post_id THEN pm.meta_value END ) as order_total,
+        max( CASE WHEN pm.meta_key = '_order_tax' and p.ID = pm.post_id THEN pm.meta_value END ) as order_tax,
+        max( CASE WHEN pm.meta_key = '_paid_date' and p.ID = pm.post_id THEN pm.meta_value END ) as paid_date,
+        ( select group_concat( order_item_name separator '|' ) from wp_woocommerce_order_items where order_id = p.ID ) as order_items
+    FROM
+        wp_posts p 
+        join wp_postmeta pm on p.ID = pm.post_id
+        join wp_woocommerce_order_items oi on p.ID = oi.order_id
+    WHERE
+        post_type = 'shop_order' and
+        post_status = '{$orderStatus}'  and order_id = '{$order_id}'
+    group by
+        p.ID";
+$resultCus = $conn->query($sqlCus);
+
+if ($resultCus->num_rows > 0) {
+  // output data of each row
+  while($rowaCus = $resultCus->fetch_assoc()) {
+
+echo "<tr><th>Order Id   </th></td><td>-</td><td>" . $rowaCus["order_id"] . "</td></tr>";
+echo "<tr><th>Name  </th></td><td>-</td><td>" . $rowaCus["_billing_first_name"] . " " . $rowaCus["_billing_last_name"] . "</td></tr>";
+echo "<tr><th>Billing E-mail   </th></td><td>-</td><td>" . $rowaCus["billing_email"] . "</td></tr>";
+
+echo "<tr><th>Billing Phone   </th></td><td>-</td><td>" . $rowaCus["billing_phone"] . "</td></tr>";
+
+
+echo "<tr><th>Billing Address 1   </th></td><td>-</td><td>" . $rowaCus["_billing_address_1"] . "</td></tr>";
+echo "<tr><th>Billing Address  2   </th></td><td>-</td><td>" . $rowaCus["_billing_address_2"] . "</td></tr>";
+echo "<tr><th>State   </th></td><td>-</td><td>" . $rowaCus["_billing_state"] . "</td></tr>";
+echo "<tr><th>City  </th></td><td>-</td><td>" . $rowaCus["_billing_city"] . "</td></tr>";
+echo "<tr><th>Order Total  </th></td><td>-</td><td>" . $rowaCus["order_total"] . "</td></tr>";
+  } }
+
+
+	 } 
+ }  } else {  echo "0 results"; }
+
+?>
+
+</tr>
+</table>
+<div class="clear"></div>
+  </div>
+
+
+
+
+
+<?php
+}
+elseif($b == "wc-cancelled") {
+?>
+<div id="processingSingle">  
+<table class="OrderTableSingle">
+
+<?php
+$sql = "SELECT wp_woocommerce_order_items.*,wp_woocommerce_order_itemmeta.* FROM wp_woocommerce_order_items LEFT JOIN wp_woocommerce_order_itemmeta ON wp_woocommerce_order_items.order_item_id = wp_woocommerce_order_itemmeta.order_item_id WHERE wp_woocommerce_order_itemmeta.meta_value = '{$shop_id}' and wp_woocommerce_order_items.order_id = '{$c}' ORDER BY wp_woocommerce_order_items.order_id DESC ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+
+
+$order_id = $row["order_id"];
+$orderItem_id = $row["order_item_id"];
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+
+$prod_id = $rowPId["meta_value"];
+  } }
+   
+$post_id = $prod_id;
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;
+
+ $queried_post_order = get_post($order_id);
+$orderStatus =  $queried_post_order->post_status;
+//echo "<br>".$orderStatus."<br>";
+ if($orderStatus == "wc-cancelled") {   
+ echo "<tr><th>Order Item Name</th><td>-</td><td><a href='".site_url()."/".$queried_post->post_name."'>" . $title . "</a></td></tr>"; 
+
+echo "<tr><th>Order Status  </th></td><td>-</td><td><button type='button' class='btn btn-primary' data-toggle='modal' data-target='#exampleModalCenter'>".$orderStatus."</button>  </td></tr>";
+
+
+$terms = get_the_terms( $post_id , 'product_cat' );
+foreach ( $terms as $term ) {
+echo "<tr><th>Product Category </th></td><td>-</td><td>" . $term->name. "</td></tr>";
+}//echo "<strong>Meta Key -</strong> " .  $row["meta_key"]. "<br>";
+//echo "<strong>Value  -</strong> " . $row["meta_value"]. ";
+$sqla = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('Color',  'Size')  ";
+$resulta = $conn->query($sqla);
+if ($resulta->num_rows > 0) {
+  // output data of each row
+  while($rowa = $resulta->fetch_assoc()) {
+echo "<tr><th>". $rowa["meta_key"] . " </th><td>-</td><td>" . $rowa["meta_value"] . "</td></tr>";
+  } }
+		
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+//echo "Product Id -  </strong>" . $rowPId["meta_value"] . "<br>";
+	  echo "<tr><th>Product Id  </th></td><td>-</td><td>" . $rowPId["meta_value"] . "</td></tr>";
+$prod_id = $rowPId["meta_value"];
+  } }
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;		
+	 //echo $order_id;
+$order = new WC_Order($order_id);
+$order_date = $order->order_date;
+//echo "<strong>Order Date -  </strong>" .$order_date;
+echo "<tr><th>Order Date   </th></td><td>-</td><td>" .date('d/M/Y', strtotime($order_date)). "</td></tr>";
+$dt = new DateTime($order_date);
+//$date = $dt->format('d-m-Y');
+$time = $dt->format('h:i:s A');
+echo "<tr><th>Order Time   </th></td><td>-</td><td>" .$time."</td></tr>";
+$sqlCus = "SELECT
+        p.ID as order_id,
+        p.post_date,
+        max( CASE WHEN pm.meta_key = '_billing_email' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_email,
+        max( CASE WHEN pm.meta_key = '_billing_phone' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_phone,
+
+        max( CASE WHEN pm.meta_key = '_billing_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_first_name,
+        max( CASE WHEN pm.meta_key = '_billing_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_last_name,
+        max( CASE WHEN pm.meta_key = '_billing_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_1,
+        max( CASE WHEN pm.meta_key = '_billing_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_2,
+        max( CASE WHEN pm.meta_key = '_billing_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_city,
+        max( CASE WHEN pm.meta_key = '_billing_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_state,
+        max( CASE WHEN pm.meta_key = '_billing_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_postcode,
+        max( CASE WHEN pm.meta_key = '_shipping_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_first_name,
+        max( CASE WHEN pm.meta_key = '_shipping_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_last_name,
+        max( CASE WHEN pm.meta_key = '_shipping_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_1,
+        max( CASE WHEN pm.meta_key = '_shipping_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_2,
+        max( CASE WHEN pm.meta_key = '_shipping_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_city,
+        max( CASE WHEN pm.meta_key = '_shipping_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_state,
+        max( CASE WHEN pm.meta_key = '_shipping_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_postcode,
+        max( CASE WHEN pm.meta_key = '_order_total' and p.ID = pm.post_id THEN pm.meta_value END ) as order_total,
+        max( CASE WHEN pm.meta_key = '_order_tax' and p.ID = pm.post_id THEN pm.meta_value END ) as order_tax,
+        max( CASE WHEN pm.meta_key = '_paid_date' and p.ID = pm.post_id THEN pm.meta_value END ) as paid_date,
+        ( select group_concat( order_item_name separator '|' ) from wp_woocommerce_order_items where order_id = p.ID ) as order_items
+    FROM
+        wp_posts p 
+        join wp_postmeta pm on p.ID = pm.post_id
+        join wp_woocommerce_order_items oi on p.ID = oi.order_id
+    WHERE
+        post_type = 'shop_order' and
+        post_status = '{$orderStatus}'  and order_id = '{$order_id}'
+    group by
+        p.ID";
+$resultCus = $conn->query($sqlCus);
+
+if ($resultCus->num_rows > 0) {
+  // output data of each row
+  while($rowaCus = $resultCus->fetch_assoc()) {
+
+echo "<tr><th>Order Id   </th></td><td>-</td><td>" . $rowaCus["order_id"] . "</td></tr>";
+echo "<tr><th>Name  </th></td><td>-</td><td>" . $rowaCus["_billing_first_name"] . " " . $rowaCus["_billing_last_name"] . "</td></tr>";
+echo "<tr><th>Billing E-mail   </th></td><td>-</td><td>" . $rowaCus["billing_email"] . "</td></tr>";
+
+echo "<tr><th>Billing Phone   </th></td><td>-</td><td>" . $rowaCus["billing_phone"] . "</td></tr>";
+
+
+echo "<tr><th>Billing Address 1   </th></td><td>-</td><td>" . $rowaCus["_billing_address_1"] . "</td></tr>";
+echo "<tr><th>Billing Address  2   </th></td><td>-</td><td>" . $rowaCus["_billing_address_2"] . "</td></tr>";
+echo "<tr><th>State   </th></td><td>-</td><td>" . $rowaCus["_billing_state"] . "</td></tr>";
+echo "<tr><th>City  </th></td><td>-</td><td>" . $rowaCus["_billing_city"] . "</td></tr>";
+echo "<tr><th>Order Total  </th></td><td>-</td><td>" . $rowaCus["order_total"] . "</td></tr>";
+  } }
+
+
+	 } 
+ }  } else {  echo "0 results"; }
+
+?>
+
+</tr>
+</table>
+<div class="clear"></div>
+  </div>
+
+
+<?php
+ }
+
+
+
+
+
+elseif($b == "wc-completed") {
+?>
+<div id="processingSingle">  
+<table class="OrderTableSingle">
+
+<?php
+$sql = "SELECT wp_woocommerce_order_items.*,wp_woocommerce_order_itemmeta.* FROM wp_woocommerce_order_items LEFT JOIN wp_woocommerce_order_itemmeta ON wp_woocommerce_order_items.order_item_id = wp_woocommerce_order_itemmeta.order_item_id WHERE wp_woocommerce_order_itemmeta.meta_value = '{$shop_id}' and wp_woocommerce_order_items.order_id = '{$c}' ORDER BY wp_woocommerce_order_items.order_id DESC ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+
+
+$order_id = $row["order_id"];
+$orderItem_id = $row["order_item_id"];
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+
+$prod_id = $rowPId["meta_value"];
+  } }
+   
+$post_id = $prod_id;
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;
+
+ $queried_post_order = get_post($order_id);
+$orderStatus =  $queried_post_order->post_status;
+//echo "<br>".$orderStatus."<br>";
+ if($orderStatus == "wc-completed") {   
+ echo "<tr><th>Order Item Name</th><td>-</td><td><a href='".site_url()."/".$queried_post->post_name."'>" . $title . "</a></td></tr>"; 
+
+echo "<tr><th>Order Status  </th></td><td>-</td><td><button type='button' class='btn btn-primary' data-toggle='modal' data-target='#exampleModalCenter'>".$orderStatus."</button>  </td></tr>";
+
+
+$terms = get_the_terms( $post_id , 'product_cat' );
+foreach ( $terms as $term ) {
+echo "<tr><th>Product Category </th></td><td>-</td><td>" . $term->name. "</td></tr>";
+}//echo "<strong>Meta Key -</strong> " .  $row["meta_key"]. "<br>";
+//echo "<strong>Value  -</strong> " . $row["meta_value"]. ";
+$sqla = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('Color',  'Size')  ";
+$resulta = $conn->query($sqla);
+if ($resulta->num_rows > 0) {
+  // output data of each row
+  while($rowa = $resulta->fetch_assoc()) {
+echo "<tr><th>". $rowa["meta_key"] . " </th><td>-</td><td>" . $rowa["meta_value"] . "</td></tr>";
+  } }
+		
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+//echo "Product Id -  </strong>" . $rowPId["meta_value"] . "<br>";
+	  echo "<tr><th>Product Id  </th></td><td>-</td><td>" . $rowPId["meta_value"] . "</td></tr>";
+$prod_id = $rowPId["meta_value"];
+  } }
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;		
+	 //echo $order_id;
+$order = new WC_Order($order_id);
+$order_date = $order->order_date;
+//echo "<strong>Order Date -  </strong>" .$order_date;
+echo "<tr><th>Order Date   </th></td><td>-</td><td>" .date('d/M/Y', strtotime($order_date)). "</td></tr>";
+$dt = new DateTime($order_date);
+//$date = $dt->format('d-m-Y');
+$time = $dt->format('h:i:s A');
+echo "<tr><th>Order Time   </th></td><td>-</td><td>" .$time."</td></tr>";
+$sqlCus = "SELECT
+        p.ID as order_id,
+        p.post_date,
+        max( CASE WHEN pm.meta_key = '_billing_email' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_email,
+        max( CASE WHEN pm.meta_key = '_billing_phone' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_phone,
+
+        max( CASE WHEN pm.meta_key = '_billing_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_first_name,
+        max( CASE WHEN pm.meta_key = '_billing_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_last_name,
+        max( CASE WHEN pm.meta_key = '_billing_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_1,
+        max( CASE WHEN pm.meta_key = '_billing_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_2,
+        max( CASE WHEN pm.meta_key = '_billing_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_city,
+        max( CASE WHEN pm.meta_key = '_billing_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_state,
+        max( CASE WHEN pm.meta_key = '_billing_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_postcode,
+        max( CASE WHEN pm.meta_key = '_shipping_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_first_name,
+        max( CASE WHEN pm.meta_key = '_shipping_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_last_name,
+        max( CASE WHEN pm.meta_key = '_shipping_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_1,
+        max( CASE WHEN pm.meta_key = '_shipping_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_2,
+        max( CASE WHEN pm.meta_key = '_shipping_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_city,
+        max( CASE WHEN pm.meta_key = '_shipping_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_state,
+        max( CASE WHEN pm.meta_key = '_shipping_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_postcode,
+        max( CASE WHEN pm.meta_key = '_order_total' and p.ID = pm.post_id THEN pm.meta_value END ) as order_total,
+        max( CASE WHEN pm.meta_key = '_order_tax' and p.ID = pm.post_id THEN pm.meta_value END ) as order_tax,
+        max( CASE WHEN pm.meta_key = '_paid_date' and p.ID = pm.post_id THEN pm.meta_value END ) as paid_date,
+        ( select group_concat( order_item_name separator '|' ) from wp_woocommerce_order_items where order_id = p.ID ) as order_items
+    FROM
+        wp_posts p 
+        join wp_postmeta pm on p.ID = pm.post_id
+        join wp_woocommerce_order_items oi on p.ID = oi.order_id
+    WHERE
+        post_type = 'shop_order' and
+        post_status = '{$orderStatus}'  and order_id = '{$order_id}'
+    group by
+        p.ID";
+$resultCus = $conn->query($sqlCus);
+
+if ($resultCus->num_rows > 0) {
+  // output data of each row
+  while($rowaCus = $resultCus->fetch_assoc()) {
+
+echo "<tr><th>Order Id   </th></td><td>-</td><td>" . $rowaCus["order_id"] . "</td></tr>";
+echo "<tr><th>Name  </th></td><td>-</td><td>" . $rowaCus["_billing_first_name"] . " " . $rowaCus["_billing_last_name"] . "</td></tr>";
+echo "<tr><th>Billing E-mail   </th></td><td>-</td><td>" . $rowaCus["billing_email"] . "</td></tr>";
+
+echo "<tr><th>Billing Phone   </th></td><td>-</td><td>" . $rowaCus["billing_phone"] . "</td></tr>";
+
+
+echo "<tr><th>Billing Address 1   </th></td><td>-</td><td>" . $rowaCus["_billing_address_1"] . "</td></tr>";
+echo "<tr><th>Billing Address  2   </th></td><td>-</td><td>" . $rowaCus["_billing_address_2"] . "</td></tr>";
+echo "<tr><th>State   </th></td><td>-</td><td>" . $rowaCus["_billing_state"] . "</td></tr>";
+echo "<tr><th>City  </th></td><td>-</td><td>" . $rowaCus["_billing_city"] . "</td></tr>";
+echo "<tr><th>Order Total  </th></td><td>-</td><td>" . $rowaCus["order_total"] . "</td></tr>";
+  } }
+
+
+	 } 
+ }  } else {  echo "0 results"; }
+
+?>
+
+</tr>
+</table>
+<div class="clear"></div>
+  </div>
+
+
+<?php
+ }
+
+
+elseif($b == "wc-refunded") {
+?>
+<div id="processingSingle">  
+<table class="OrderTableSingle">
+
+<?php
+$sql = "SELECT wp_woocommerce_order_items.*,wp_woocommerce_order_itemmeta.* FROM wp_woocommerce_order_items LEFT JOIN wp_woocommerce_order_itemmeta ON wp_woocommerce_order_items.order_item_id = wp_woocommerce_order_itemmeta.order_item_id WHERE wp_woocommerce_order_itemmeta.meta_value = '{$shop_id}' and wp_woocommerce_order_items.order_id = '{$c}' ORDER BY wp_woocommerce_order_items.order_id DESC ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+
+
+$order_id = $row["order_id"];
+$orderItem_id = $row["order_item_id"];
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+
+$prod_id = $rowPId["meta_value"];
+  } }
+   
+$post_id = $prod_id;
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;
+
+ $queried_post_order = get_post($order_id);
+$orderStatus =  $queried_post_order->post_status;
+//echo "<br>".$orderStatus."<br>";
+ if($orderStatus == "wc-fefunded") {   
+ echo "<tr><th>Order Item Name</th><td>-</td><td><a href='".site_url()."/".$queried_post->post_name."'>" . $title . "</a></td></tr>"; 
+
+echo "<tr><th>Order Status  </th></td><td>-</td><td><button type='button' class='btn btn-primary' data-toggle='modal' data-target='#exampleModalCenter'>".$orderStatus."</button>  </td></tr>";
+
+
+$terms = get_the_terms( $post_id , 'product_cat' );
+foreach ( $terms as $term ) {
+echo "<tr><th>Product Category </th></td><td>-</td><td>" . $term->name. "</td></tr>";
+}//echo "<strong>Meta Key -</strong> " .  $row["meta_key"]. "<br>";
+//echo "<strong>Value  -</strong> " . $row["meta_value"]. ";
+$sqla = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('Color',  'Size')  ";
+$resulta = $conn->query($sqla);
+if ($resulta->num_rows > 0) {
+  // output data of each row
+  while($rowa = $resulta->fetch_assoc()) {
+echo "<tr><th>". $rowa["meta_key"] . " </th><td>-</td><td>" . $rowa["meta_value"] . "</td></tr>";
+  } }
+		
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+//echo "Product Id -  </strong>" . $rowPId["meta_value"] . "<br>";
+	  echo "<tr><th>Product Id  </th></td><td>-</td><td>" . $rowPId["meta_value"] . "</td></tr>";
+$prod_id = $rowPId["meta_value"];
+  } }
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;		
+	 //echo $order_id;
+$order = new WC_Order($order_id);
+$order_date = $order->order_date;
+//echo "<strong>Order Date -  </strong>" .$order_date;
+echo "<tr><th>Order Date   </th></td><td>-</td><td>" .date('d/M/Y', strtotime($order_date)). "</td></tr>";
+$dt = new DateTime($order_date);
+//$date = $dt->format('d-m-Y');
+$time = $dt->format('h:i:s A');
+echo "<tr><th>Order Time   </th></td><td>-</td><td>" .$time."</td></tr>";
+$sqlCus = "SELECT
+        p.ID as order_id,
+        p.post_date,
+        max( CASE WHEN pm.meta_key = '_billing_email' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_email,
+        max( CASE WHEN pm.meta_key = '_billing_phone' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_phone,
+
+        max( CASE WHEN pm.meta_key = '_billing_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_first_name,
+        max( CASE WHEN pm.meta_key = '_billing_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_last_name,
+        max( CASE WHEN pm.meta_key = '_billing_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_1,
+        max( CASE WHEN pm.meta_key = '_billing_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_2,
+        max( CASE WHEN pm.meta_key = '_billing_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_city,
+        max( CASE WHEN pm.meta_key = '_billing_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_state,
+        max( CASE WHEN pm.meta_key = '_billing_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_postcode,
+        max( CASE WHEN pm.meta_key = '_shipping_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_first_name,
+        max( CASE WHEN pm.meta_key = '_shipping_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_last_name,
+        max( CASE WHEN pm.meta_key = '_shipping_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_1,
+        max( CASE WHEN pm.meta_key = '_shipping_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_2,
+        max( CASE WHEN pm.meta_key = '_shipping_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_city,
+        max( CASE WHEN pm.meta_key = '_shipping_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_state,
+        max( CASE WHEN pm.meta_key = '_shipping_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_postcode,
+        max( CASE WHEN pm.meta_key = '_order_total' and p.ID = pm.post_id THEN pm.meta_value END ) as order_total,
+        max( CASE WHEN pm.meta_key = '_order_tax' and p.ID = pm.post_id THEN pm.meta_value END ) as order_tax,
+        max( CASE WHEN pm.meta_key = '_paid_date' and p.ID = pm.post_id THEN pm.meta_value END ) as paid_date,
+        ( select group_concat( order_item_name separator '|' ) from wp_woocommerce_order_items where order_id = p.ID ) as order_items
+    FROM
+        wp_posts p 
+        join wp_postmeta pm on p.ID = pm.post_id
+        join wp_woocommerce_order_items oi on p.ID = oi.order_id
+    WHERE
+        post_type = 'shop_order' and
+        post_status = '{$orderStatus}'  and order_id = '{$order_id}'
+    group by
+        p.ID";
+$resultCus = $conn->query($sqlCus);
+
+if ($resultCus->num_rows > 0) {
+  // output data of each row
+  while($rowaCus = $resultCus->fetch_assoc()) {
+
+echo "<tr><th>Order Id   </th></td><td>-</td><td>" . $rowaCus["order_id"] . "</td></tr>";
+echo "<tr><th>Name  </th></td><td>-</td><td>" . $rowaCus["_billing_first_name"] . " " . $rowaCus["_billing_last_name"] . "</td></tr>";
+echo "<tr><th>Billing E-mail   </th></td><td>-</td><td>" . $rowaCus["billing_email"] . "</td></tr>";
+
+echo "<tr><th>Billing Phone   </th></td><td>-</td><td>" . $rowaCus["billing_phone"] . "</td></tr>";
+
+
+echo "<tr><th>Billing Address 1   </th></td><td>-</td><td>" . $rowaCus["_billing_address_1"] . "</td></tr>";
+echo "<tr><th>Billing Address  2   </th></td><td>-</td><td>" . $rowaCus["_billing_address_2"] . "</td></tr>";
+echo "<tr><th>State   </th></td><td>-</td><td>" . $rowaCus["_billing_state"] . "</td></tr>";
+echo "<tr><th>City  </th></td><td>-</td><td>" . $rowaCus["_billing_city"] . "</td></tr>";
+echo "<tr><th>Order Total  </th></td><td>-</td><td>" . $rowaCus["order_total"] . "</td></tr>";
+  } }
+
+
+	 } 
+ }  } else {  echo "0 results"; }
+
+?>
+
+</tr>
+</table>
+<div class="clear"></div>
+  </div>
+
+
+<?php
+ }
+
+?>
+
+
+
+
+
+
+
+
+<div class="clear"></div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">UPDATE ORDER STATUS</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      
+      <form action="#" method="post">
+      <table>
+      <tr>
+      <td>Change Status</td> <td> 
+      <select name="stautsUpdate">
+      <option value="wc-processing" >Processing</option>
+ <option value="wc-completed">Completed</option>
+ <option value="wc-cancelled">Cancelled</option>
+ <option value="wc-refunded">Refunded</option>
+      </select>
+      <input type="text" value="<?php echo $c; ?>" name="oodrdId" />
+      
+      
+      </td>
+      <td><input name="Update" type="submit" id="Update" ></td>
+      </tr>
+      </table>
+      </form>
+      
+
+<?php
+
+if(isset($_POST["oodrdId"])) {
+$statUp = $_POST["stautsUpdate"];
+$sql = "UPDATE wp_posts SET post_status='{$statUp}' WHERE ID={$c}";
+
+if ($conn->query($sql) === TRUE) {
+  echo "Record updated successfully";
+} else {
+  echo "Error updating record: " . $conn->error;
+}
+
+}
+?>
+
+      </div>
+<!--      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>-->
+    </div>
+  </div>
+</div>
+    
+
+
+<?php $conn->close(); ?>
+<div class="clear"></div>
+</div></div></div></section>
   
   
