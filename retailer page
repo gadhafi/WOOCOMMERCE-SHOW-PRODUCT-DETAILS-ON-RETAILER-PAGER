@@ -1,0 +1,294 @@
+Save data to database (function.php) on theme folder 
+install post to posts relation ship plugin
+<?php
+// Stores the custom field value in Cart object
+add_filter( 'woocommerce_add_cart_item_data', 'save_custom_product_field_data', 10, 2 );
+function save_custom_product_field_data( $cart_item_data, $product_id ) {
+     if( isset( $_REQUEST['custom_field']) ) {
+        $cart_item_data[ 'custom_field' ] = $_REQUEST['custom_field'];
+        // below statement make sure every add to cart action as unique line item
+        $cart_item_data['unique_key'] = md5( microtime().rand() );
+        WC()->session->set( 'my_order_data', $_REQUEST['custom_field'] );
+    }
+if( isset( $_REQUEST['hairSize']) ) {
+        $cart_item_data[ 'hairSize' ] = $_REQUEST['hairSize'];
+        // below statement make sure every add to cart action as unique line item
+        $cart_item_data['unique_key'] = md5( microtime().rand() );
+        WC()->session->set( 'my_order_data', $_REQUEST['hairSize'] );
+}
+     if( isset( $_REQUEST['hairLenth']) ) {
+        $cart_item_data[ 'hairLenth' ] = $_REQUEST['hairLenth'];
+        // below statement make sure every add to cart action as unique line item
+        $cart_item_data['unique_key'] = md5( microtime().rand() );
+        WC()->session->set( 'my_order_data', $_REQUEST['hairLenth'] );
+    }	
+	    if( isset( $_REQUEST['shop_field']) ) {
+        $cart_item_data[ 'shop_field' ] = $_REQUEST['shop_field'];			
+        // below statement make sure every add to cart action as unique line item
+        $cart_item_data['unique_key'] = md5( microtime().rand() );
+        WC()->session->set( 'my_order_data', $_REQUEST['shop_field'] );
+    }	
+	    if( isset( $_REQUEST['retailers_id']) ) {
+        $cart_item_data[ 'retailers_id' ] = $_REQUEST['retailers_id'];			
+        // below statement make sure every add to cart action as unique line item
+        $cart_item_data['unique_key'] = md5( microtime().rand() );
+        WC()->session->set( 'my_order_data', $_REQUEST['retailers_id'] );
+    }	
+    return $cart_item_data; }
+add_filter( 'woocommerce_get_cart_item_from_session', function ( $cartItemData, $cartItemSessionData, $cartItemKey ) {
+    if ( isset( $cartItemSessionData['shop_field'] ) ) {
+        $cartItemData['shop_field'] = $cartItemSessionData['shop_field'];	
+		
+    }	
+	    if ( isset( $cartItemSessionData['hairSize'] ) ) {
+        $cartItemData['hairSize'] = $cartItemSessionData['hairSize'];
+    }	
+		    if ( isset( $cartItemSessionData['hairLenth'] ) ) {
+        $cartItemData['hairLenth'] = $cartItemSessionData['hairLenth'];
+    }	
+	    if ( isset( $cartItemSessionData['custom_field'] ) ) {
+        $cartItemData['custom_field'] = $cartItemSessionData['custom_field'];
+    }
+	    if ( isset( $cartItemSessionData['retailers_id'] ) ) {
+        $cartItemData['retailers_id'] = $cartItemSessionData['retailers_id'];
+    }
+    return $cartItemData;
+}, 10, 3 );
+//To also show the data at the cart/checkout page you can use the following code:
+add_filter( 'woocommerce_get_item_data', function ( $data, $cartItem ) {
+    if ( isset( $cartItem['custom_field'] ) ) {
+        $data[] = array(
+            'name' => 'Color Selected',
+            'value' => $cartItem['custom_field']
+        );
+    }
+
+    return $data;
+}, 10, 2 );
+
+add_filter( 'woocommerce_get_item_data', function ( $data, $cartItem ) {
+ if ( isset( $cartItem['hairSize'] ) ) {
+        $data[] = array(
+            'name' => 'Hair Size',
+            'value' => $cartItem['hairSize']
+        );
+    }
+
+    return $data;
+}, 10, 2 );
+
+add_filter( 'woocommerce_get_item_data', function ( $data, $cartItem ) {
+ if ( isset( $cartItem['hairLenth'] ) ) {
+        $data[] = array(
+            'name' => 'Hair Length',
+            'value' => $cartItem['hairLenth']
+        );
+    }
+    return $data;
+}, 10, 2 );
+add_filter( 'woocommerce_get_item_data', function ( $data, $cartItemd ) {
+    if ( isset( $cartItemd['shop_field'] ) ) {
+        $data[] = array(
+            'name' => 'Shop Selected',
+            'value' => $cartItemd['shop_field']
+        );
+    }
+    return $data;
+}, 10, 2 );
+add_filter( 'woocommerce_get_item_data', function ( $data, $cartItemd ) {
+    if ( isset( $cartItemd['retailers_id'] ) ) {
+        $data[] = array(
+            'name' => 'Reatailer Id',
+            'value' => $cartItemd['retailers_id']
+        );
+    }
+    return $data;
+}, 10, 2 );
+add_action( 'woocommerce_add_order_item_meta', function ( $itemId, $values, $key ) {
+    if ( isset( $values['custom_field'] ) ) {
+        wc_add_order_item_meta( $itemId, 'Color', $values['custom_field'] );
+    }	
+	    if ( isset( $values['hairSize'] ) ) {
+        wc_add_order_item_meta( $itemId, 'Size', $values['hairSize'] );
+    }	
+		    if ( isset( $values['hairLenth'] ) ) {
+        wc_add_order_item_meta( $itemId, 'Length', $values['hairLenth'] );
+    }		
+    if ( isset( $values['shop_field'] ) ) {
+        wc_add_order_item_meta( $itemId, 'Shop', $values['shop_field'] );
+    }	
+	    if ( isset( $values['retailers_id'] ) ) {
+        wc_add_order_item_meta( $itemId, 'Ratailer', $values['retailers_id'] );
+    } }, 10, 3 );
+#-------------------- post to posts relation ship (show retailer name in products) -------------------------#
+function my_connection_types() {
+	p2p_register_connection_type( array(
+		'name' => 'posts_to_pages',
+		'from' => 'shop',
+		'to' => 'product'
+	) );
+}
+ add_action( 'p2p_init', 'my_connection_types' ); 
+  #-------------------- post to posts relation ship (show retailer name in products) 
+  ?>
+  
+----------------------------------------------------- retailer page ------------------------------------------------------------------------
+
+<div id="processing" class="mainTable">  
+  
+
+  
+  
+<table>
+<thead>
+<tr>
+<th>SL.NO</th>
+<th>Item</th>
+<!--<th>Order Status</th>-->
+<th>Product Cat</th>
+<th>Customer Name</th>
+<th>Customer E-mail</th>
+<th>Customer Mobile</th>
+<th>Total Amoount</th>
+<th>View/Edit</th>
+</tr>
+</thead>
+  <tbody id="ordertblDetails">
+<?php
+
+$i = 1;
+$sql = "SELECT wp_woocommerce_order_items.*,wp_woocommerce_order_itemmeta.* FROM wp_woocommerce_order_items LEFT JOIN wp_woocommerce_order_itemmeta ON wp_woocommerce_order_items.order_item_id = wp_woocommerce_order_itemmeta.order_item_id WHERE wp_woocommerce_order_itemmeta.meta_value = '{$shop_id}' ORDER BY wp_woocommerce_order_items.order_id DESC ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+
+//echo "<strong>Order Item Id - </strong>" .$row["order_item_id"]. "<br>";
+//echo  "<strong>Order Item Name - </strong>" . $row["order_item_name"]. "<br>";
+/*echo  "<strong>Order Id  -</strong> " . $row["order_id"]. "<br>";*/
+$order_id = $row["order_id"];
+$orderItem_id = $row["order_item_id"];
+
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+
+$resultPId = $conn->query($sqlPId);
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+
+$prod_id = $rowPId["meta_value"];
+  } }
+  
+  
+$post_id = $prod_id;
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;
+
+ $queried_post_order = get_post($order_id);
+$orderStatus =  $queried_post_order->post_status;
+
+
+ if($orderStatus == "wc-processing") {  
+ echo "<tr><td>";  ?>
+<?php echo $i;  $i++;
+ echo "</td>
+ 
+ <td><a href='".site_url()."/".$queried_post->post_name."'>" . $title . "</a></td>";
+
+// 	echo "<td>".$orderStatus."</td>";	
+echo "<td>";
+$terms = get_the_terms( $post_id , 'product_cat' );
+foreach ( $terms as $term ) {
+echo $term->name;
+}
+echo "</td>";
+$sqla = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('Color',  'Size')  ";
+$resulta = $conn->query($sqla);
+if ($resulta->num_rows > 0) {
+  // output data of each row
+  while($rowa = $resulta->fetch_assoc()) {
+	  
+
+  } }
+		
+$sqlPId = "SELECT * FROM wp_woocommerce_order_itemmeta WHERE order_item_id = '{$orderItem_id}' AND meta_key IN ('_product_id')  ";
+$resultPId = $conn->query($sqlPId);
+
+if ($resultPId->num_rows > 0) {
+  // output data of each row
+  while($rowPId = $resultPId->fetch_assoc()) {
+
+
+$prod_id = $rowPId["meta_value"];
+  } }
+$queried_post = get_post($post_id);
+$title = $queried_post->post_title;	
+	
+
+
+$order = new WC_Order($order_id);
+$order_date = $order->order_date;
+
+
+$sqlCus = "SELECT
+        p.ID as order_id,
+        p.post_date,
+        max( CASE WHEN pm.meta_key = '_billing_email' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_email,		
+		        max( CASE WHEN pm.meta_key = '_billing_phone' and p.ID = pm.post_id THEN pm.meta_value END ) as billing_phone,        max( CASE WHEN pm.meta_key = '_billing_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_first_name,
+        max( CASE WHEN pm.meta_key = '_billing_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_last_name,
+        max( CASE WHEN pm.meta_key = '_billing_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_1,
+        max( CASE WHEN pm.meta_key = '_billing_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_address_2,
+        max( CASE WHEN pm.meta_key = '_billing_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_city,
+        max( CASE WHEN pm.meta_key = '_billing_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_state,
+        max( CASE WHEN pm.meta_key = '_billing_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _billing_postcode,
+        max( CASE WHEN pm.meta_key = '_shipping_first_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_first_name,
+        max( CASE WHEN pm.meta_key = '_shipping_last_name' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_last_name,
+        max( CASE WHEN pm.meta_key = '_shipping_address_1' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_1,
+        max( CASE WHEN pm.meta_key = '_shipping_address_2' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_address_2,
+        max( CASE WHEN pm.meta_key = '_shipping_city' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_city,
+        max( CASE WHEN pm.meta_key = '_shipping_state' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_state,
+        max( CASE WHEN pm.meta_key = '_shipping_postcode' and p.ID = pm.post_id THEN pm.meta_value END ) as _shipping_postcode,
+        max( CASE WHEN pm.meta_key = '_order_total' and p.ID = pm.post_id THEN pm.meta_value END ) as order_total,
+        max( CASE WHEN pm.meta_key = '_order_tax' and p.ID = pm.post_id THEN pm.meta_value END ) as order_tax,
+        max( CASE WHEN pm.meta_key = '_paid_date' and p.ID = pm.post_id THEN pm.meta_value END ) as paid_date,
+        ( select group_concat( order_item_name separator '|' ) from wp_woocommerce_order_items where order_id = p.ID ) as order_items
+    FROM
+        wp_posts p 
+        join wp_postmeta pm on p.ID = pm.post_id
+        join wp_woocommerce_order_items oi on p.ID = oi.order_id
+    WHERE
+        post_type = 'shop_order' and
+        post_status = '{$orderStatus}'  and order_id = '{$order_id}'
+    group by
+        p.ID";
+$resultCus = $conn->query($sqlCus);
+
+if ($resultCus->num_rows > 0) {
+  // output data of each row
+  while($rowaCus = $resultCus->fetch_assoc()) {
+echo "<td>" . $rowaCus["_billing_first_name"] . " " . $rowaCus["_billing_last_name"] . "</td>";
+echo "<td>" . $rowaCus["billing_email"] . "</td>";
+echo "<td>" . $rowaCus["billing_phone"] . "</td>";
+
+
+$_SESSION['billname'] = $rowaCus["_billing_first_name"];
+$_SESSION['billMail'] = $rowaCus["billing_email"];
+echo "<td>" . $rowaCus["order_total"] . "</td>";
+  } }
+  ?>
+  	 <td><div class='edit'><a href='<?php echo site_url(); ?>/order-details/?link=<?php echo  $_SESSION['shopID']; ?>&status=<?php echo $orderStatus; ?>&singleorder=<?php echo $order_id; ?>'>view/edit</a></div></td>
+<?php
+	 } 
+ }
+ echo "</tr>";
+    } else {  echo "0 results"; } ?>
+</tbody> </table>
+<div class="clear"></div>
+  </div>
+ 
+ 
+ 
+  
+  
+  
